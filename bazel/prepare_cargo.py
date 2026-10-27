@@ -36,6 +36,7 @@ def discover(arguments):
 
     for name, channel in channels.items():
         cargo = Path(subprocess.check_output([rustup, "which", "cargo", "--toolchain", channel], universal_newlines=True).strip())
+        subprocess.check_output([rustup, "which", "rustc", "--toolchain", channel], universal_newlines=True)
         config["rust"][name] = str(cargo.parent.parent)
     (output / "toolchains.json").write_text(json.dumps(config))
 

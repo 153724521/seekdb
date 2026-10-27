@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import runpy
 import shutil
 import subprocess
@@ -128,6 +129,47 @@ echo installed >> "$INSTALL_LOG"
         result = self.run_init("--help")
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertFalse((self.root / "installer.log").exists())
+
+    def partial_toolchain(self):
+        rustup = shutil.which("rustup")
+        if not rustup:
+            self.skipTest("Real rustup is required to reproduce interrupted installation")
+        self.environment.update({"RUSTUP_DIST_SERVER": "http://127.0.0.1:9",
+                                 "RUSTUP_UPDATE_ROOT": "http://127.0.0.1:9",
+                                 "RUSTUP_AUTO_INSTALL": "0",
+                                 "NO_PROXY": "127.0.0.1", "no_proxy": "127.0.0.1"})
+        cargo_bin = Path(self.environment["CARGO_HOME"]) / "bin"
+        cargo_bin.mkdir(parents=True)
+        for tool in ("rustup", "cargo"):
+            (cargo_bin / tool).symlink_to(rustup)
+        result = subprocess.run([rustup, "show"], cwd=self.root, env=self.environment,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                universal_newlines=True, timeout=10)
+        host = next(line.split(": ", 1)[1] for line in result.stdout.splitlines()
+                    if line.startswith("Default host: "))
+        pin = (self.root / "rust/rust-toolchain.toml").read_text()
+        channel = re.search(r'^channel = "([^"]+)"', pin, re.MULTILINE).group(1)
+        toolchain = Path(self.environment["RUSTUP_HOME"]) / "toolchains" / (channel + "-" + host)
+        (toolchain / "bin").mkdir(parents=True)
+        # Interrupted rustup installs can leave cargo without rustc or dist metadata.
+        (toolchain / "bin/cargo").write_text("incomplete installation fixture\n")
+        return rustup, channel
+
+    def test_partial_toolchain_cannot_finish_init_without_repair(self):
+        self.partial_toolchain()
+        result = self.run_init()
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertNotIn("Dependencies ready", result.stdout)
+
+    def test_discovery_rejects_toolchain_without_rustc(self):
+        rustup, channel = self.partial_toolchain()
+        result = subprocess.run([sys.executable, str(REPO / "bazel/prepare_cargo.py"),
+                                 "discover", str(self.root), rustup, channel, "nightly-2000-01-01"],
+                                env=self.environment, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, universal_newlines=True, timeout=10)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("rustc", result.stdout)
+        self.assertFalse((self.root / "toolchains.json").exists())
 
 
 if __name__ == "__main__":
