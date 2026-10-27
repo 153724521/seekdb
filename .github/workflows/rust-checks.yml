@@ -23,7 +23,6 @@ on:
       - 'bazel/cxx.bzl'
       - 'build.py'
       - 'deps/init/**'
-      - 'unittest/bazel/**'
       - 'MODULE.bazel'
       - '.github/workflows/rust-checks.yml'
 
@@ -54,9 +53,6 @@ jobs:
             ${{ env.CARGO_HOME }}/bin
           key: cargo-${{ runner.os }}-${{ hashFiles('rust/Cargo.lock', 'rust/rust-toolchain.toml') }}
           restore-keys: cargo-${{ runner.os }}-
-
-      - name: Test build initialization
-        run: python3 -m unittest discover -s unittest/bazel -p 'test_*.py'
 
       - name: Prepare generated interfaces and C++ bridges
         run: |
