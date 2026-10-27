@@ -30,6 +30,8 @@ build:windows --features=-static_link_msvcrt
 build:O1 --compilation_mode=fastbuild
 build:O1 --copt=-O1
 build:O2 --compilation_mode=opt
+# Apple's fastbuild/dbg DEBUG macro conflicts with seekdb's DEBUG log level.
+build:macos --copt=-UDEBUG
 build:macos --macos_minimum_os=13.0
 build:android --platforms=//bazel/platforms:android_arm64
 build:ios --platforms=@apple_support//platforms:ios_arm64
