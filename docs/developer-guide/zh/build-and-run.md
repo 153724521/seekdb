@@ -20,7 +20,7 @@ cd seekdb
 ./build.py build seekdb
 ```
 
-`init` 准备平台依赖，首次编译或依赖定义变化后执行。后续增量编译只需重复 `build` 命令。产物位于 `build/bin/src/observer/seekdb`。
+`init` 准备 Rust 和平台依赖，首次编译、依赖定义或 `rust/rust-toolchain.toml` 变化后执行。后续增量编译只需重复 `build` 命令。产物位于 `build/bin/src/observer/seekdb`。
 
 所有参数都放在命令后，包括 `--batch`、`--bazelrc` 等 Bazel 启动参数。`build.py` 每次读取当前 Bazel 的参数定义，在内部将启动参数移到命令前。参数名称保留 Bazel 原生拼写，多词参数用下划线连接。
 

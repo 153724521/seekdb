@@ -100,15 +100,6 @@ jobs:
           } >> "$GITHUB_ENV"
           echo "$CACHE_ROOT/cargo/bin" >> "$GITHUB_PATH"
 
-      - name: Setup Rust
-        uses: ./.github/actions/setup-rust
-        with:
-          cache: 'false'
-        env:
-          RUSTUP_INIT_URL: https://rsproxy.cn/rustup-init.sh
-          RUSTUP_DIST_SERVER: https://rsproxy.cn
-          RUSTUP_UPDATE_ROOT: https://rsproxy.cn/rustup
-
       - name: Compile
         id: compile
         shell: bash

@@ -182,6 +182,28 @@ def install(profile, destination, cache_directory=None):
     print("Dependencies ready: " + str(destination), flush=True)
 
 
+def prepare_rust():
+    if not shutil.which("rustup") or not shutil.which("cargo"):
+        with tempfile.TemporaryDirectory(prefix="rustup-init.") as directory:
+            if os.name == "nt":
+                arch = {"amd64": "x86_64", "x86_64": "x86_64", "arm64": "aarch64", "aarch64": "aarch64"}[platform.machine().lower()]
+                installer = Path(directory) / "rustup-init.exe"
+                url = os.environ["RUSTUP_UPDATE_ROOT"].rstrip("/") + "/dist/" + arch + "-pc-windows-msvc/rustup-init.exe"
+                command = [str(installer)]
+            else:
+                installer = Path(directory) / "rustup-init.sh"
+                url = "https://rsproxy.cn/rustup-init.sh"
+                command = ["sh", str(installer)]
+            print("Installing rustup", flush=True)
+            download(os.environ.get("RUSTUP_INIT_URL", url), installer)
+            subprocess.run(command + ["-y", "--profile", "minimal", "--default-toolchain", "none",
+                                      "--no-modify-path"], check=True)
+    print("Preparing Rust toolchain from rust/rust-toolchain.toml", flush=True)
+    environment = dict(os.environ, RUSTUP_AUTO_INSTALL="1")
+    environment.pop("RUSTUP_TOOLCHAIN", None)
+    subprocess.run(["rustup", "show", "active-toolchain"], cwd=ROOT / "rust", env=environment, check=True)
+
+
 def main(arguments):
     parser = argparse.ArgumentParser(prog="build.py init", description=__doc__)
     targets = parser.add_mutually_exclusive_group()
@@ -202,8 +224,10 @@ def main(arguments):
         ).returncode:
             raise ValueError("iOS SDK unavailable; install Xcode and set DEVELOPER_DIR to its Contents/Developer directory")
 
+    profile = host_profile()
+    prepare_rust()
     cache = os.environ.get("DEP_CACHE_DIR") if os.name != "nt" else None
-    install(host_profile(), ROOT / "deps/3rd", Path(cache).expanduser().resolve() if cache else None)
+    install(profile, ROOT / "deps/3rd", Path(cache).expanduser().resolve() if cache else None)
     if options.wasm:
         subprocess.run([sys.executable, str(PROFILES / "wasm/build.py")], cwd=ROOT, check=True)
     if options.android:

@@ -20,7 +20,7 @@ The repository's `build.py` downloads the Bazel version pinned in `.bazelversion
 ./build.py build seekdb
 ```
 
-`init` prepares platform dependencies; run it on the first build or after dependency metadata changes. For incremental builds, repeat only the `build` command. The resulting binary is `build/bin/src/observer/seekdb`.
+`init` prepares Rust and platform dependencies; run it on the first build or after dependency metadata or `rust/rust-toolchain.toml` changes. For incremental builds, repeat only the `build` command. The resulting binary is `build/bin/src/observer/seekdb`.
 
 Put all options after the command, including Bazel startup options such as `--batch` and `--bazelrc`. `build.py` reads the installed Bazel's option definitions on each invocation and moves startup options before the command internally. Keep Bazel's original option names, including underscores.
 
