@@ -48,10 +48,10 @@ def host_profile():
         tag = "windows." + arch
     elif system == "Darwin":
         arm = subprocess.run(["sysctl", "-n", "hw.optional.arm64"],
-                             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+                             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True)
         if arch == "aarch64" or arm.stdout.strip() == "1":
             arch = "arm64"
-        major = int(subprocess.check_output(["sw_vers", "-productVersion"], text=True).split(".")[0])
+        major = int(subprocess.check_output(["sw_vers", "-productVersion"], universal_newlines=True).split(".")[0])
         release = next((v for v in (27, 15, 13) if major >= v), None)
         tag = "macos%s.%s" % (release, arch)
     elif system == "Linux":

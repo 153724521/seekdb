@@ -74,7 +74,7 @@ environment["PYTHONHOME"] = str(Path(environment["PYTHONHOME"]).absolute())
 target = args.target
 if not target:
     environment.update({"CC": str(cc), "CXX": str(cc), "AR": str(ar)})
-    version = subprocess.check_output([str(rustc), "-vV"], text=True)
+    version = subprocess.check_output([str(rustc), "-vV"], universal_newlines=True)
     target = next(line.split(": ", 1)[1] for line in version.splitlines() if line.startswith("host: "))
 if target:
     target = target.replace("-", "_")

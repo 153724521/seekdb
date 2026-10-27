@@ -42,7 +42,7 @@ def main():
         command += ["--target", args.target]
     command += args.cargo_args
     with subprocess.Popen(command, cwd=workspace, env=environment, stdout=subprocess.PIPE,
-                          text=True) as cargo:
+                          universal_newlines=True) as cargo:
         for line in cargo.stdout:
             message = json.loads(line)
             if (message["reason"] == "compiler-artifact"

@@ -15,7 +15,7 @@ def discover(arguments):
     output = Path(arguments[0])
     rustup, native_channel, wasm_channel = arguments[1:]
     exe = ".exe" if os.name == "nt" else ""
-    installed = subprocess.check_output([rustup, "toolchain", "list"], text=True)
+    installed = subprocess.check_output([rustup, "toolchain", "list"], universal_newlines=True)
     channels = {"native": native_channel}
     if any(line.startswith(wasm_channel + "-") for line in installed.splitlines()):
         channels["wasm"] = wasm_channel
@@ -35,7 +35,7 @@ def discover(arguments):
             config["python_libs"]["lib64/" + platstdlib.name] = str(platstdlib)
 
     for name, channel in channels.items():
-        cargo = Path(subprocess.check_output([rustup, "which", "cargo", "--toolchain", channel], text=True).strip())
+        cargo = Path(subprocess.check_output([rustup, "which", "cargo", "--toolchain", channel], universal_newlines=True).strip())
         config["rust"][name] = str(cargo.parent.parent)
     (output / "toolchains.json").write_text(json.dumps(config))
 
